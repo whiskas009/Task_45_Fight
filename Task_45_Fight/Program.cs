@@ -7,8 +7,8 @@ namespace Task_45_Fight
     {
         static void Main(string[] args)
         {
-            Arena Arena = new Arena();
-            Arena.ShowStarMenu();
+            Arena arena = new Arena();
+            arena.StartGame();
         }
     }
 
@@ -29,7 +29,7 @@ namespace Task_45_Fight
             Armor = armor;
             AttackSpeed = attackSpeed;
         }
-
+        
         public virtual void TakeDamage(int attack)
         {
             if (Armor >= attack)
@@ -43,7 +43,7 @@ namespace Task_45_Fight
             }
         }
 
-        public virtual int CauseDamage()
+        public virtual int ReturnDamage()
         {
             if (Health > 0)
             {
@@ -71,19 +71,13 @@ namespace Task_45_Fight
             Console.WriteLine($" {textRight}");
         }
 
-        public bool CreateProbabilityAction(int lowLimit, int maxLimit, int requiredNumber)
+        public bool RandomlyApplyAction(int percentProbabilityAction)
         {
+            int lowLimit = 0;
+            int maxLimit = 100;
             Random Random = new Random();
             int randomNumber = Random.Next(lowLimit, maxLimit);
-
-            if (randomNumber == requiredNumber)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return randomNumber <= percentProbabilityAction;
         }
     }
 
@@ -91,7 +85,7 @@ namespace Task_45_Fight
     {
         public Heavy() : base("Тяжёлый", 200, 40, 0, 1) { }
 
-        public override int CauseDamage()
+        public override int ReturnDamage()
         {
             CurrentDamage = 0;
 
@@ -100,7 +94,7 @@ namespace Task_45_Fight
                 CurrentDamage += Attack + StrongHit() + CriticalHit();
             }
 
-            return base.CauseDamage();
+            return base.ReturnDamage();
         }
 
         private int StrongHit()
@@ -108,7 +102,7 @@ namespace Task_45_Fight
             int additionalDamage = 0;
             int coefficientIncrease = 2;
 
-            if (CreateProbabilityAction(0, 3, 0) == true)
+            if (RandomlyApplyAction(0, 3, 0) == true)
             {
                 additionalDamage = (Attack * coefficientIncrease) - Attack;
                 OutputColorText($"{Name} применил сильный удар. Дополнительный урон составил ", "", additionalDamage.ToString());
@@ -122,7 +116,7 @@ namespace Task_45_Fight
             int additionalDamage = 0;
             int coefficientIncrease = 10;
 
-            if (CreateProbabilityAction(0, 100, 0) == true)
+            if (RandomlyApplyAction(0, 100, 0) == true)
             {
                 additionalDamage = (Attack * coefficientIncrease) - Attack;
                 OutputColorText($"{Name} применил критический удар. Дополнительный урон составил ", "", additionalDamage.ToString());
@@ -144,7 +138,7 @@ namespace Task_45_Fight
             base.TakeDamage(attack);
         }
 
-        public override int CauseDamage()
+        public override int ReturnDamage()
         {
             CurrentDamage = 0;
 
@@ -154,7 +148,7 @@ namespace Task_45_Fight
             }
 
             CurrentDamage += ReturnDamage();
-            return base.CauseDamage();
+            return base.ReturnDamage();
         }
 
         private void CalculateDamageReturned(int attack)
@@ -181,7 +175,7 @@ namespace Task_45_Fight
             base.TakeDamage(attack);
         }
 
-        public override int CauseDamage()
+        public override int ReturnDamage()
         {
             CurrentDamage = 0;
 
@@ -190,12 +184,12 @@ namespace Task_45_Fight
                 CurrentDamage += Attack;
             }
 
-            return base.CauseDamage();
+            return base.ReturnDamage();
         }
 
         private void SuperRegenerate(int attack)
         {
-            if (CreateProbabilityAction(0, 5, 0) == true)
+            if (RandomlyApplyAction(0, 5, 0) == true)
             {
                 Health += attack;
                 OutputColorText($"{Name} примененил регенерацию и восстановил ", " здоровья", attack.ToString());
@@ -223,7 +217,7 @@ namespace Task_45_Fight
             base.TakeDamage(attack);
         }
 
-        public override int CauseDamage()
+        public override int ReturnDamage()
         {
             CurrentDamage = 0;
 
@@ -233,7 +227,7 @@ namespace Task_45_Fight
             }
 
             CurrentDamage += FindWeakSpot();
-            return base.CauseDamage();
+            return base.ReturnDamage();
         }
 
         private int HittingWeakSpot()
@@ -263,7 +257,7 @@ namespace Task_45_Fight
 
         private void DodgeBlow(int attack)
         {
-            if (CreateProbabilityAction(0, 5, 0) != true)
+            if (RandomlyApplyAction(0, 5, 0) != true)
             {
                 Health += attack;
                 Console.WriteLine($"Ловкий уворачивается от аттаки");
@@ -284,7 +278,7 @@ namespace Task_45_Fight
             _initialHealth = Health;
         }
 
-        public override int CauseDamage()
+        public override int ReturnDamage()
         {
             CurrentDamage = 0;
 
@@ -293,7 +287,7 @@ namespace Task_45_Fight
                 CurrentDamage += Attack + IncreaseDamage();
             }
 
-            return base.CauseDamage();
+            return base.ReturnDamage();
         }
 
         private int IncreaseDamage()
@@ -311,7 +305,7 @@ namespace Task_45_Fight
     {
         private List<Fighter> _opponents = new List<Fighter>();
 
-        public void ShowStarMenu()
+        public void StartGame()
         {
             bool isWork = true;
 
@@ -409,8 +403,8 @@ namespace Task_45_Fight
                 {
                     _opponents[firstFighter].ShowStats();
                     _opponents[secondFighter].ShowStats();
-                    _opponents[firstFighter].TakeDamage(_opponents[secondFighter].CauseDamage());
-                    _opponents[secondFighter].TakeDamage(_opponents[firstFighter].CauseDamage());
+                    _opponents[firstFighter].TakeDamage(_opponents[secondFighter].ReturnDamage());
+                    _opponents[secondFighter].TakeDamage(_opponents[firstFighter].ReturnDamage());
                     Console.WriteLine("");
                 }
 
