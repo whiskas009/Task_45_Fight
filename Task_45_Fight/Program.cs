@@ -102,7 +102,7 @@ namespace Task_45_Fight
             int additionalDamage = 0;
             int coefficientIncrease = 2;
 
-            if (RandomlyApplyAction(0, 3, 0) == true)
+            if (RandomlyApplyAction(30) == true)
             {
                 additionalDamage = (Attack * coefficientIncrease) - Attack;
                 OutputColorText($"{Name} применил сильный удар. Дополнительный урон составил ", "", additionalDamage.ToString());
