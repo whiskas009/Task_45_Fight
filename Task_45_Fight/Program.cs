@@ -199,7 +199,8 @@ namespace Task_45_Fight
 
         private void PartialRegenerate(int attack)
         {
-            int restoredHealth = attack / 4;
+            int recoveryFactor = 4;
+            int restoredHealth = attack / recoveryFactor;
             Health += restoredHealth;
             OutputColorText($"{Name} примененил регенерацию и восстановил ", " здоровья", restoredHealth.ToString());
         }
@@ -324,7 +325,7 @@ namespace Task_45_Fight
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        ChooseFighter();
+                        ChooseFighters();
                         break;
 
                     case "2":
@@ -358,15 +359,7 @@ namespace Task_45_Fight
                 }
 
                 _fighters[_firstFighter].OutputColorText("", "", "", "\nБой закончился \n");
-
-                if (_fighters[_firstFighter].Health > 0)
-                {
-                    Console.WriteLine($"\nПобедил: {_fighters[_firstFighter].Name}\n");
-                }
-                else
-                {
-                    Console.WriteLine($"\nПобедил: {_fighters[_secondFighter].Name}\n");
-                }
+                AnnounceWinner(_fighters[_firstFighter].Health);
             }
             else
             {
@@ -399,9 +392,9 @@ namespace Task_45_Fight
             }
         }
 
-        private void ChooseFighter()
+        private void ChooseFighters()
         {
-            CreateFighter();
+            CreateFighters();
             Console.WriteLine("\nВыберите бойца слева\n");
             AssignFighters(ref _firstFighter);
             Console.WriteLine("\nВыберите бойца справа\n");
@@ -410,7 +403,7 @@ namespace Task_45_Fight
             fightersPicked = true;
         }
 
-        private void CreateFighter()
+        private void CreateFighters()
         {
             _fighters.Clear();
             _fighters.Add(new Heavy());
@@ -418,6 +411,18 @@ namespace Task_45_Fight
             _fighters.Add(new Healer());
             _fighters.Add(new Clever());
             _fighters.Add(new Huskar());
+        }
+
+        private void AnnounceWinner(int healthFirstFighter)
+        {
+            if (healthFirstFighter > 0)
+            {
+                _fighters[0].OutputColorText("\nПобедил ","", "", _fighters[_firstFighter].Name);
+            }
+            else
+            {
+                _fighters[0].OutputColorText("\nПобедил ", "", "", _fighters[_secondFighter].Name);
+            }
         }
     }
 }
