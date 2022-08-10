@@ -58,7 +58,7 @@ namespace Task_45_Fight
 
         public void ShowStats()
         {
-            OutputColorText($"{Name}: ", $" HP, {Armor} ARM", "", Health.ToString());
+            OutputColorText($"{Name}: ", $" HP, {Armor} ARM", "",Health.ToString());
         }
 
         public void OutputColorText(string textLeft, string textRight, string redText = "", string greenText = "")
@@ -66,6 +66,7 @@ namespace Task_45_Fight
             Console.Write($"{textLeft}");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(redText);
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(greenText);
             Console.ResetColor();
             Console.WriteLine($" {textRight}");
@@ -91,13 +92,13 @@ namespace Task_45_Fight
 
             for (int i = 0; i < AttackSpeed; i++)
             {
-                CurrentDamage += Attack + StrongHit() + CriticalHit();
+                CurrentDamage += Attack + HitHard() + HitCritical();
             }
 
             return base.ReturnDamage();
         }
 
-        private int StrongHit()
+        private int HitHard()
         {
             int additionalDamage = 0;
             int coefficientIncrease = 2;
@@ -111,12 +112,12 @@ namespace Task_45_Fight
             return additionalDamage;
         }
 
-        private int CriticalHit()
+        private int HitCritical()
         {
             int additionalDamage = 0;
             int coefficientIncrease = 10;
 
-            if (RandomlyApplyAction(0, 100, 0) == true)
+            if (RandomlyApplyAction(1) == true)
             {
                 additionalDamage = (Attack * coefficientIncrease) - Attack;
                 OutputColorText($"{Name} применил критический удар. Дополнительный урон составил ", "", additionalDamage.ToString());
@@ -147,7 +148,7 @@ namespace Task_45_Fight
                 CurrentDamage += Attack;
             }
 
-            CurrentDamage += ReturnDamage();
+            CurrentDamage += RevertDamage();
             return base.ReturnDamage();
         }
 
@@ -157,7 +158,7 @@ namespace Task_45_Fight
             _returnedDamage = (int)(attack * returnRatio);
         }
 
-        private int ReturnDamage()
+        private int RevertDamage()
         {
             OutputColorText($"{Name} возвращает урон равный ", "", _returnedDamage.ToString());
             return _returnedDamage;
@@ -189,7 +190,7 @@ namespace Task_45_Fight
 
         private void SuperRegenerate(int attack)
         {
-            if (RandomlyApplyAction(0, 5, 0) == true)
+            if (RandomlyApplyAction(25) == true)
             {
                 Health += attack;
                 OutputColorText($"{Name} примененил регенерацию и восстановил ", " здоровья", attack.ToString());
@@ -200,7 +201,7 @@ namespace Task_45_Fight
         {
             int restoredHealth = attack / 4;
             Health += restoredHealth;
-            OutputColorText($"{Name} примененил регенерацию и восстановил", " здоровья", restoredHealth.ToString());
+            OutputColorText($"{Name} примененил регенерацию и восстановил ", " здоровья", restoredHealth.ToString());
         }
     }
 
@@ -213,8 +214,7 @@ namespace Task_45_Fight
 
         public override void TakeDamage(int attack)
         {
-            DodgeBlow(attack);
-            base.TakeDamage(attack);
+            base.TakeDamage(DodgeBlow(attack));
         }
 
         public override int ReturnDamage()
@@ -255,17 +255,21 @@ namespace Task_45_Fight
             return damage;
         }
 
-        private void DodgeBlow(int attack)
+        private int DodgeBlow(int attack)
         {
-            if (RandomlyApplyAction(0, 5, 0) != true)
+            int damage = 0;
+
+            if (RandomlyApplyAction(25) != true)
             {
-                Health += attack;
                 Console.WriteLine($"Ловкий уворачивается от аттаки");
             }
             else
             {
+                damage = attack;
                 Console.WriteLine($"Отвернуться не удалось. Урон принят.");
             }
+
+            return damage;
         }
     }
 
@@ -296,14 +300,18 @@ namespace Task_45_Fight
             int additionalDamage;
             double damageIncreaseFactor = (1 - (currentHealth / _initialHealth)) + 1;
             additionalDamage = (int)((Attack * damageIncreaseFactor) - Attack);
-            OutputColorText($"Дополнительный урон хускара, составил ", additionalDamage.ToString());
+            OutputColorText($"Дополнительный урон хускара, составил ", "", additionalDamage.ToString());
             return additionalDamage;
         }
     }
 
     class Arena
     {
-        private List<Fighter> _opponents = new List<Fighter>();
+        private int _firstFighter;
+        private int _secondFighter;
+        private bool fightersPicked = false;
+
+        private List<Fighter> _fighters = new List<Fighter>();
 
         public void StartGame()
         {
@@ -316,7 +324,7 @@ namespace Task_45_Fight
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        ChooseOpponents();
+                        ChooseFighter();
                         break;
 
                     case "2":
@@ -334,88 +342,30 @@ namespace Task_45_Fight
             }
         }
 
-        private void ChooseOpponents()
-        {
-            _opponents.Clear();
-            Console.WriteLine("\nВыберите первого бойца");
-            ShowChooseMenu();
-            Console.WriteLine("\nВыберите второго бойца");
-            ShowChooseMenu();
-            Console.WriteLine("\nГотово!\n");
-        }
-
-        private void ShowChooseMenu()
-        {
-            bool isWork = true;
-
-            while (isWork == true)
-            {
-                Console.WriteLine("\n1. Тяжёлый \n2. Знахарь \n3. Маг \n4. Ловкий \n5. Хускар \n6. Выход\n");
-                switch (Console.ReadLine())
-                {
-                    case "1":
-                        CreateFighter(new Heavy(), ref isWork);
-                        break;
-
-                    case "2":
-                        CreateFighter(new Healer(), ref isWork);
-                        break;
-
-                    case "3":
-                        CreateFighter(new Magician(), ref isWork);
-                        break;
-
-                    case "4":
-                        CreateFighter(new Clever(), ref isWork);
-                        break;
-
-                    case "5":
-                        CreateFighter(new Huskar(), ref isWork);
-                        break;
-
-                    case "6":
-                        isWork = false;
-                        break;
-
-                    default:
-                        Console.WriteLine("\nНеккоректный ввод\n");
-                        break;
-                }
-            }
-        }
-
-        private void CreateFighter(object Fighter, ref bool isWork)
-        {
-            _opponents.Add((Fighter)Fighter);
-            isWork = false;
-        }
-
         private void StartFight()
         {
-            if (_opponents.Count == 2)
+            if (fightersPicked == true)
             {
-                int firstFighter = 0;
-                int secondFighter = 1;
-                FlipСoin(ref firstFighter, ref secondFighter);
-                _opponents[firstFighter].OutputColorText("", "", "", "Бой начался \n\n");
+                _fighters[_firstFighter].OutputColorText("", "", "", "Бой начался \n\n");
 
-                while (_opponents[0].Health > 0 & _opponents[1].Health > 0)
+                while (_fighters[_firstFighter].Health > 0 & _fighters[_secondFighter].Health > 0)
                 {
-                    _opponents[firstFighter].ShowStats();
-                    _opponents[secondFighter].ShowStats();
-                    _opponents[firstFighter].TakeDamage(_opponents[secondFighter].ReturnDamage());
-                    _opponents[secondFighter].TakeDamage(_opponents[firstFighter].ReturnDamage());
+                    _fighters[_firstFighter].ShowStats();
+                    _fighters[_secondFighter].ShowStats();
+                    _fighters[_firstFighter].TakeDamage(_fighters[_secondFighter].ReturnDamage());
+                    _fighters[_secondFighter].TakeDamage(_fighters[_firstFighter].ReturnDamage());
                     Console.WriteLine("");
                 }
 
-                _opponents[firstFighter].OutputColorText("", "", "", "\nБой закончился \n");
+                _fighters[_firstFighter].OutputColorText("", "", "", "\nБой закончился \n");
 
-                foreach (var fighter in _opponents)
+                if (_fighters[_firstFighter].Health > 0)
                 {
-                    if (fighter.Health > 0)
-                    {
-                        Console.WriteLine($"\nПобедил: {fighter.Name}\n");
-                    }
+                    Console.WriteLine($"\nПобедил: {_fighters[_firstFighter].Name}\n");
+                }
+                else
+                {
+                    Console.WriteLine($"\nПобедил: {_fighters[_secondFighter].Name}\n");
                 }
             }
             else
@@ -424,24 +374,50 @@ namespace Task_45_Fight
             }
         }
 
-        private void FlipСoin(ref int firstFighter, ref int secondFighter)
+        private void AssignFighters(ref int fighter)
         {
-            Random random = new Random();
-            int minLimit = 0;
-            int maxLimit = 2;
-            int randomNumber = random.Next(minLimit, maxLimit);
+            bool isWork = true;
 
-            if (randomNumber == 0)
+            while (isWork == true)
             {
-                firstFighter = 0;
-                secondFighter = 1;
-            }
-            else
-            {
-                firstFighter = 1;
-                secondFighter = 0;
+                for (int i = 0; i < _fighters.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {_fighters[i].Name}");
+                }
+
+                bool isNumber = int.TryParse(Console.ReadLine(), out int numberFighter);
+
+                if (isNumber == true && numberFighter <= _fighters.Count && numberFighter > 0)
+                {
+                    fighter = numberFighter - 1;
+                    isWork = false;
+                }
+                else
+                {
+                    Console.WriteLine("\nВы ввели не число или данного бойца нет в списке\n");
+                }
             }
         }
-    }
 
+        private void ChooseFighter()
+        {
+            CreateFighter();
+            Console.WriteLine("\nВыберите бойца слева\n");
+            AssignFighters(ref _firstFighter);
+            Console.WriteLine("\nВыберите бойца справа\n");
+            AssignFighters(ref _secondFighter);
+            _fighters[0].OutputColorText("", "", "", "\nГотово\n");
+            fightersPicked = true;
+        }
+
+        private void CreateFighter()
+        {
+            _fighters.Clear();
+            _fighters.Add(new Heavy());
+            _fighters.Add(new Magician());
+            _fighters.Add(new Healer());
+            _fighters.Add(new Clever());
+            _fighters.Add(new Huskar());
+        }
+    }
 }
